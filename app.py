@@ -572,14 +572,14 @@ def page_survey(cfg, role):
                     pdf.set_font("Arial", size=12)
                     pdf.cell(0, 10, to_ascii("Conversational Banking Survey Responses"), ln=True, align="C")
                     pdf.ln(5)
+                    # Effective page width for wrapping
+                    effective_width = pdf.w - pdf.l_margin - pdf.r_margin
                     
                     # Organization Info
                     if org_name or contact:
                         pdf.set_font("Arial", "B", 12)
                         pdf.cell(0, 10, to_ascii("Organization Information"), ln=True)
                         pdf.set_font("Arial", size=10)
-                        question_text = safe_multicell_text(q.get('question', ''))
-                        pdf.multi_cell(0, 6, to_ascii(f"Q{i}: {question_text}"))
                         pdf.cell(0, 8, to_ascii(f"Organization: {org_name}"), ln=True)
                         if contact:
                             pdf.cell(0, 8, to_ascii(f"Contact: {contact}"), ln=True)
@@ -599,22 +599,16 @@ def page_survey(cfg, role):
                         safe_answer = str(answer)
                         if len(safe_answer) > 100:
                             safe_answer = safe_answer[:100] + "..."
-                        safe_answer = safe_multicell_text(safe_answer)
-                        pdf.multi_cell(0, 6, to_ascii(f"A{i}: {safe_answer}"))
+                        # Render answer line robustly
+                        a_line = to_ascii(f"A{i}: {safe_answer}")
+                        a_line = safe_multicell_text(a_line)
+                        render_text_in_cell(pdf, a_line, effective_width)
                         # Add question type information
                         question_type = q.get('type', 'text')
                         pdf.set_font("Arial", "I", 9)  # Italic font for type
                         pdf.cell(0, 5, to_ascii(f"Type: {question_type}"), ln=True)
                         
                         pdf.set_font("Arial", size=10)
-                        answer = str(q.get('answer', ''))
-                        if isinstance(q.get('answer'), list):
-                            answer = ', '.join(str(item) for item in q.get('answer', []))
-                        # Option 1: Truncate long answers
-                        safe_answer = str(answer)
-                        if len(safe_answer) > 100:
-                            safe_answer = safe_answer[:100] + "..."
-                        pdf.multi_cell(0, 6, to_ascii(f"A{i}: {safe_answer}"))
                     
                     # Section 2: Open-Ended Questions
                     section2_questions = st.session_state.get("section2_questions", [])
@@ -630,15 +624,16 @@ def page_survey(cfg, role):
                             if question and answer:  # Only include answered questions
                                 pdf.ln(2)
                                 pdf.set_font("Arial", "B", 10)
-                                question_text = safe_multicell_text(question)
-                                pdf.multi_cell(0, 6, to_ascii(f"Q{i}: {question_text}"))
+                                question_text = safe_multicell_text(to_ascii(question))
+                                render_text_in_cell(pdf, to_ascii(f"Q{i}: {question_text}"), effective_width)
                                 pdf.set_font("Arial", size=10)
                                 # Option 1: Truncate long answers
                                 safe_answer = str(answer)
                                 if len(safe_answer) > 100:
                                     safe_answer = safe_answer[:100] + "..."
-                                safe_answer = safe_multicell_text(safe_answer)
-                                pdf.multi_cell(0, 6, to_ascii(f"A{i}: {safe_answer}"))
+                                a_line = to_ascii(f"A{i}: {safe_answer}")
+                                a_line = safe_multicell_text(a_line)
+                                render_text_in_cell(pdf, a_line, effective_width)
                     
                     # Section 3: Submission Information
                     pdf.ln(5)
