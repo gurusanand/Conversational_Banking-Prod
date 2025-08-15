@@ -644,7 +644,8 @@ def page_survey(cfg, role):
                     pdf.cell(0, 8, to_ascii(f"Role: {role}"), ln=True)
                     pdf.cell(0, 8, to_ascii(f"Submission Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"), ln=True)
                     
-                    pdf_bytes = pdf.output(dest='S').encode('latin1')
+                    _out = pdf.output(dest='S')
+                    pdf_bytes = _out if isinstance(_out, (bytes, bytearray)) else _out.encode('latin1')
                     b64 = base64.b64encode(pdf_bytes).decode()
                     href = f'<a href="data:application/pdf;base64,{b64}" download="CB_Survey_Responses.pdf">Download Survey Responses PDF</a>'
                     st.markdown(href, unsafe_allow_html=True)
