@@ -7,3 +7,5 @@ fpdf
 dnspython>=2.4
 certifi>=2024.7.4
 fpdf2
+plotly
+numpy
