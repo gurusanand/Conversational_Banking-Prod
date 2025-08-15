@@ -144,7 +144,7 @@ def header_bar():
         st.write(openai_status)
         st.write(mongo_status)
     with right:
-        st.image("logo.png", width=140)
+        st.image("Logo.png", width=140)
         st.write("")
         if st.button("Logout", help="Click to end your session."):
             for k in ["role","username","current_doc_id","fixed_answers","open_blocks"]:
