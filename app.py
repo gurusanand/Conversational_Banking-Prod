@@ -1,5 +1,5 @@
 import streamlit as st
-import os, json, time, configparser, re
+import os, json, time, configparser, re, string
 from bson import ObjectId
 from dotenv import load_dotenv
 load_dotenv()
@@ -10,28 +10,35 @@ import pandas as pd
 import textwrap
 
 # Helper to wrap long words for FPDF
-def safe_multicell_text(text, width=45):
+def safe_multicell_text(text, width=40):
     """
-    Safely wrap text for FPDF multi_cell to prevent FPDFException.
-    Breaks long words and removes problematic characters.
+    Aggressively sanitizes and wraps text for FPDF multi_cell to prevent FPDFException.
     """
     if not text:
         return ""
-    
-    # Convert to string and remove/replace problematic characters
+
+    # 1. Convert to string and normalize whitespace
     text_str = str(text).strip()
-    
-    # Replace problematic characters that might cause FPDF issues
-    text_str = text_str.replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ')
-    text_str = re.sub(r'\s+', ' ', text_str)  # Normalize whitespace
-    
-    # Use textwrap to handle wrapping, including breaking long words
-    wrapped_text = textwrap.fill(text_str, width=width, break_long_words=True, break_on_hyphens=False)
-    
-    # Final safety check - truncate if still too long
-    if len(wrapped_text) > 1000:
-        wrapped_text = wrapped_text[:1000] + "..."
-    
+    text_str = re.sub(r'\s+', ' ', text_str.replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' '))
+
+    # 2. Filter out any characters that are not standard printable ASCII
+    # This is more aggressive to prevent issues with characters FPDF can't handle.
+    printable = set(string.printable)
+    text_str = ''.join(filter(lambda x: x in printable, text_str))
+
+    # 3. Use textwrap for robust wrapping
+    wrapped_text = textwrap.fill(
+        text_str,
+        width=width,
+        break_long_words=True,
+        break_on_hyphens=False,
+        replace_whitespace=True # Ensures all whitespace is single spaces
+    )
+
+    # 4. Final truncation for safety
+    if len(wrapped_text) > 2000:
+        wrapped_text = wrapped_text[:2000] + "..."
+
     return wrapped_text
 
 # Optional deps
