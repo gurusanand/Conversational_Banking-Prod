@@ -7,6 +7,18 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 import pandas as pd
+import textwrap
+
+# Helper to wrap long words for FPDF
+def safe_multicell_text(text, width=80):
+    words = str(text).split()
+    wrapped_words = []
+    for word in words:
+        if len(word) > width:
+            wrapped_words.append('\n'.join(textwrap.wrap(word, width)))
+        else:
+            wrapped_words.append(word)
+    return ' '.join(wrapped_words)
 
 # Optional deps
 from db_client import get_db, mongo_ping
@@ -525,8 +537,9 @@ def page_survey(cfg, role):
                         pdf.set_font("Arial", "B", 12)
                         pdf.cell(0, 10, to_ascii("Organization Information"), ln=True)
                         pdf.set_font("Arial", size=10)
-                        if org_name:
-                            pdf.cell(0, 8, to_ascii(f"Organization: {org_name}"), ln=True)
+                        question_text = safe_multicell_text(q.get('question', ''))
+                        pdf.multi_cell(0, 6, to_ascii(f"Q{i}: {question_text}"))
+                        pdf.cell(0, 8, to_ascii(f"Organization: {org_name}"), ln=True)
                         if contact:
                             pdf.cell(0, 8, to_ascii(f"Contact: {contact}"), ln=True)
                         pdf.ln(3)
@@ -539,7 +552,8 @@ def page_survey(cfg, role):
                     for i, q in enumerate(fixed, 1):
                         pdf.ln(2)
                         pdf.set_font("Arial", "B", 10)
-                        pdf.multi_cell(0, 6, to_ascii(f"Q{i}: {q.get('question', '')}"))
+                        safe_answer = safe_multicell_text(safe_answer)
+                        pdf.multi_cell(0, 6, to_ascii(f"A{i}: {safe_answer}"))
                         
                         # Add question type information
                         question_type = q.get('type', 'text')
@@ -570,12 +584,14 @@ def page_survey(cfg, role):
                             if question and answer:  # Only include answered questions
                                 pdf.ln(2)
                                 pdf.set_font("Arial", "B", 10)
-                                pdf.multi_cell(0, 6, to_ascii(f"Q{i}: {question}"))
+                                question_text = safe_multicell_text(question)
+                                pdf.multi_cell(0, 6, to_ascii(f"Q{i}: {question_text}"))
                                 pdf.set_font("Arial", size=10)
                                 # Option 1: Truncate long answers
                                 safe_answer = str(answer)
                                 if len(safe_answer) > 100:
                                     safe_answer = safe_answer[:100] + "..."
+                                safe_answer = safe_multicell_text(safe_answer)
                                 pdf.multi_cell(0, 6, to_ascii(f"A{i}: {safe_answer}"))
                     
                     # Section 3: Submission Information
