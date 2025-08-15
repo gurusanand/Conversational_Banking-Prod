@@ -552,9 +552,14 @@ def page_survey(cfg, role):
                     for i, q in enumerate(fixed, 1):
                         pdf.ln(2)
                         pdf.set_font("Arial", "B", 10)
+                        answer = str(q.get('answer', ''))
+                        if isinstance(q.get('answer'), list):
+                            answer = ', '.join(str(item) for item in q.get('answer', []))
+                        safe_answer = str(answer)
+                        if len(safe_answer) > 100:
+                            safe_answer = safe_answer[:100] + "..."
                         safe_answer = safe_multicell_text(safe_answer)
                         pdf.multi_cell(0, 6, to_ascii(f"A{i}: {safe_answer}"))
-                        
                         # Add question type information
                         question_type = q.get('type', 'text')
                         pdf.set_font("Arial", "I", 9)  # Italic font for type
