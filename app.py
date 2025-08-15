@@ -550,7 +550,11 @@ def page_survey(cfg, role):
                         answer = str(q.get('answer', ''))
                         if isinstance(q.get('answer'), list):
                             answer = ', '.join(str(item) for item in q.get('answer', []))
-                        pdf.multi_cell(0, 6, to_ascii(f"A{i}: {answer}"))
+                        # Option 1: Truncate long answers
+                        safe_answer = str(answer)
+                        if len(safe_answer) > 100:
+                            safe_answer = safe_answer[:100] + "..."
+                        pdf.multi_cell(0, 6, to_ascii(f"A{i}: {safe_answer}"))
                     
                     # Section 2: Open-Ended Questions
                     section2_questions = st.session_state.get("section2_questions", [])
@@ -568,7 +572,11 @@ def page_survey(cfg, role):
                                 pdf.set_font("Arial", "B", 10)
                                 pdf.multi_cell(0, 6, to_ascii(f"Q{i}: {question}"))
                                 pdf.set_font("Arial", size=10)
-                                pdf.multi_cell(0, 6, to_ascii(f"A{i}: {answer}"))
+                                # Option 1: Truncate long answers
+                                safe_answer = str(answer)
+                                if len(safe_answer) > 100:
+                                    safe_answer = safe_answer[:100] + "..."
+                                pdf.multi_cell(0, 6, to_ascii(f"A{i}: {safe_answer}"))
                     
                     # Section 3: Submission Information
                     pdf.ln(5)
