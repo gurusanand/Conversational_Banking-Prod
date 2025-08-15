@@ -41,6 +41,26 @@ def safe_multicell_text(text, width=40):
 
     return wrapped_text
 
+def render_text_in_cell(pdf, text, width):
+    """
+    Manually renders text in a cell, handling line breaks to avoid FPDFException.
+    """
+    lines = text.split('\n')
+    for line in lines:
+        if pdf.get_string_width(line) < width:
+            pdf.cell(0, 6, line, ln=True)
+        else:
+            # Line is too long, needs wrapping
+            words = line.split(' ')
+            current_line = ''
+            for word in words:
+                if pdf.get_string_width(current_line + word + ' ') < width:
+                    current_line += word + ' '
+                else:
+                    pdf.cell(0, 6, current_line, ln=True)
+                    current_line = word + ' '
+            pdf.cell(0, 6, current_line, ln=True) # Last line
+
 # Optional deps
 from db_client import get_db, mongo_ping
 
