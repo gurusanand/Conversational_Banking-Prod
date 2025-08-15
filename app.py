@@ -10,7 +10,7 @@ import pandas as pd
 import textwrap
 
 # Helper to wrap long words for FPDF
-def safe_multicell_text(text, width=50):
+def safe_multicell_text(text, width=45):
     """
     Safely wrap text for FPDF multi_cell to prevent FPDFException.
     Breaks long words and removes problematic characters.
@@ -25,26 +25,14 @@ def safe_multicell_text(text, width=50):
     text_str = text_str.replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ')
     text_str = re.sub(r'\s+', ' ', text_str)  # Normalize whitespace
     
-    # Split into words and wrap long ones
-    words = text_str.split()
-    wrapped_words = []
-    
-    for word in words:
-        if len(word) > width:
-            # For very long words, break them into smaller chunks
-            chunks = [word[i:i+width] for i in range(0, len(word), width)]
-            wrapped_words.extend(chunks)
-        else:
-            wrapped_words.append(word)
-    
-    # Join back and ensure reasonable length
-    result = ' '.join(wrapped_words)
+    # Use textwrap to handle wrapping, including breaking long words
+    wrapped_text = textwrap.fill(text_str, width=width, break_long_words=True, break_on_hyphens=False)
     
     # Final safety check - truncate if still too long
-    if len(result) > 500:
-        result = result[:500] + "..."
+    if len(wrapped_text) > 1000:
+        wrapped_text = wrapped_text[:1000] + "..."
     
-    return result
+    return wrapped_text
 
 # Optional deps
 from db_client import get_db, mongo_ping
